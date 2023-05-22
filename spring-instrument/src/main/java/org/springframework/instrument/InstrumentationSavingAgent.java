@@ -19,6 +19,7 @@ package org.springframework.instrument;
 import java.lang.instrument.Instrumentation;
 
 /**
+ * instrument 两种插桩方式的实现 premain agentmain
  * Java agent that saves the {@link Instrumentation} interface from the JVM
  * for later use.
  *

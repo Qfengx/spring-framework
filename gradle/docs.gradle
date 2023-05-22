@@ -146,6 +146,8 @@ task schemaZip(type: Zip) {
 			"XSDs for deployment at https://springframework.org/schema."
 	duplicatesStrategy 'exclude'
 	moduleProjects.each { subproject ->
+		if (subproject.name == 'qfengx-study') return;
+
 		def Properties schemas = new Properties();
 
 		subproject.sourceSets.main.resources.find {

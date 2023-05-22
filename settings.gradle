@@ -21,11 +21,15 @@ include "spring-webflux"
 include "spring-websocket"
 include "spring-framework-bom"
 
+//include "cust-spring-boot"
+include "qfengx-study"
+
 // Exposes gradle buildSrc for IDE support
 include "buildSrc"
 rootProject.children.find{ it.name == "buildSrc" }.name = "spring-build-src"
 
 rootProject.name = "spring"
 rootProject.children.each {project ->
+//	println("scan project => ${project.name}")
 	project.buildFileName = "${project.name}.gradle"
 }

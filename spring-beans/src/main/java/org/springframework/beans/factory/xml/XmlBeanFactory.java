@@ -19,6 +19,7 @@ package org.springframework.beans.factory.xml;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
@@ -63,7 +64,7 @@ public class XmlBeanFactory extends DefaultListableBeanFactory {
 	 * @param resource the XML resource to load bean definitions from
 	 * @throws BeansException in case of loading or parsing errors
 	 */
-	public XmlBeanFactory(Resource resource) throws BeansException {
+	public XmlBeanFactory(ClassPathResource resource) throws BeansException {
 		this(resource, null);
 	}
 
@@ -75,7 +76,8 @@ public class XmlBeanFactory extends DefaultListableBeanFactory {
 	 * @throws BeansException in case of loading or parsing errors
 	 */
 	public XmlBeanFactory(Resource resource, BeanFactory parentBeanFactory) throws BeansException {
-		super(parentBeanFactory);
+		super(parentBeanFactory); // 加载父beanFactory  AbstractAutowireCapableBeanFactory 提供的能力
+		// 真正加载bean定义资源文件 以及 解析
 		this.reader.loadBeanDefinitions(resource);
 	}
 

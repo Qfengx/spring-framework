@@ -1,0 +1,43 @@
+description = "Qfengx Study"
+
+
+apply plugin: "groovy"
+
+
+dependencies {
+//    引入spring相关
+    compile(project(":spring-context"))
+
+//    引入boot相关
+    implementation("com.google.guava:guava:30.0-jre")
+    implementation("com.google.guava:guava:30.0-jre")
+    implementation 'com.alibaba:fastjson:2.0.29'
+    implementation('com.alibaba:transmittable-thread-local:2.14.2')
+    implementation 'com.rabbitmq:amqp-client:5.16.0'
+    implementation group: 'junit', name: 'junit', version: '4.12'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+    optional("org.codehaus.groovy:groovy-xml:${groovyVersion}")
+    optional("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+    optional("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
+
+
+
+
+}
+sourceSets {
+    main.groovy.srcDirs += "src/main/java"
+    main.java.srcDirs = []
+}
+
+compileGroovy {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+
+def deps = compileGroovy.taskDependencies.immutableValues + compileGroovy.taskDependencies.mutableValues
+compileGroovy.dependsOn = deps - "compileJava"
+compileKotlin.dependsOn(compileGroovy)
+compileKotlin.classpath += files(compileGroovy.destinationDir)
