@@ -16,6 +16,16 @@
 
 package org.springframework.remoting.rmi;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.remoting.RemoteConnectFailureException;
+import org.springframework.remoting.RemoteInvocationFailureException;
+import org.springframework.remoting.RemoteLookupFailureException;
+import org.springframework.remoting.support.RemoteInvocationBasedAccessor;
+import org.springframework.remoting.support.RemoteInvocationUtils;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -29,17 +39,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.RMIClientSocketFactory;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.aop.support.AopUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.remoting.RemoteConnectFailureException;
-import org.springframework.remoting.RemoteInvocationFailureException;
-import org.springframework.remoting.RemoteLookupFailureException;
-import org.springframework.remoting.support.RemoteInvocationBasedAccessor;
-import org.springframework.remoting.support.RemoteInvocationUtils;
 
 /**
  * {@link org.aopalliance.intercept.MethodInterceptor} for accessing conventional
@@ -144,6 +143,7 @@ public class RmiClientInterceptor extends RemoteInvocationBasedAccessor
 	 */
 	public void prepare() throws RemoteLookupFailureException {
 		// Cache RMI stub on initialization?
+		// 如果配置了lookupStubOnStartup属性便会在启动时自动寻找stub
 		if (this.lookupStubOnStartup) {
 			Remote remoteObj = lookupStub();
 			if (logger.isDebugEnabled()) {
@@ -256,6 +256,7 @@ public class RmiClientInterceptor extends RemoteInvocationBasedAccessor
 	 */
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
+		// 获取服务器中对应注册的remote对象 通过序列化传输
 		Remote stub = getStub();
 		try {
 			return doInvoke(invocation, stub);
@@ -400,7 +401,7 @@ public class RmiClientInterceptor extends RemoteInvocationBasedAccessor
 		if (AopUtils.isToStringMethod(methodInvocation.getMethod())) {
 			return "RMI invoker proxy for service URL [" + getServiceUrl() + "]";
 		}
-
+		// 将  methodInvocation 中的方法名以及参数等信息重新封装到 RemoteInvocation 并通过远程代理方法直接调用
 		return invocationHandler.invoke(createRemoteInvocation(methodInvocation));
 	}
 

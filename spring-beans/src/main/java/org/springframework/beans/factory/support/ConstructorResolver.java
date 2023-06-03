@@ -16,53 +16,22 @@
 
 package org.springframework.beans.factory.support;
 
-import java.beans.ConstructorProperties;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
-
-import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.TypeConverter;
-import org.springframework.beans.TypeMismatchException;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.*;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.core.CollectionFactory;
-import org.springframework.core.GenericTypeResolver;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.NamedThreadLocal;
-import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.*;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.MethodInvoker;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.beans.ConstructorProperties;
+import java.lang.reflect.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.*;
 
 /**
  * Delegate for resolving constructors and factory methods.
@@ -123,27 +92,34 @@ class ConstructorResolver {
 		Constructor<?> constructorToUse = null;
 		ArgumentsHolder argsHolderToUse = null;
 		Object[] argsToUse = null;
-
+		// explicitArgs通过getBean方法传入 如果getBean方法调用的时候指定方法参数那么直接使用
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
 		}
 		else {
+			// 如果在getBean方法时候没有直接指定则尝试从配置文件中解析
 			Object[] argsToResolve = null;
+			// 尝试从缓存中获取
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
+					// 缓存中
 					argsToUse = mbd.resolvedConstructorArguments;
 					if (argsToUse == null) {
+						// 配置构造函数的参数
 						argsToResolve = mbd.preparedConstructorArguments;
 					}
 				}
 			}
+			// 已在缓存中存在
 			if (argsToResolve != null) {
+				// 解析参数类型 如果给定方法的构造函数(int, int)就会把配置的("1", "1")进行转换
+				// 缓存中的值可能是原始值也可能是最终值
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve, true);
 			}
 		}
-
+		// 缓存未命中
 		if (constructorToUse == null || argsToUse == null) {
 			// Take specified constructors, if any.
 			Constructor<?>[] candidates = chosenCtors;
@@ -183,11 +159,14 @@ class ConstructorResolver {
 				minNrOfArgs = explicitArgs.length;
 			}
 			else {
+				// 提取配置文件中的配置的构造函数参数
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
+				// 用于承载解析后的构造函数参数的值
 				resolvedValues = new ConstructorArgumentValues();
+				// 能解析到的参数个数
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
-
+			// 排序给定的构造函数, public构造函数优先参数数量降序 非public 构造函数 参数数量降序
 			AutowireUtils.sortConstructors(candidates);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
@@ -199,22 +178,28 @@ class ConstructorResolver {
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > paramTypes.length) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
+					// 如果已经找到选用的构造函数或者需要的参数个数小于当前的构造函数参数个数则终止, 因为已经按个数降序处理
 					break;
 				}
 				if (paramTypes.length < minNrOfArgs) {
+					// 个数不相等
 					continue;
 				}
 
 				ArgumentsHolder argsHolder;
 				if (resolvedValues != null) {
+					// 有参数则根据值构造对应参数类型的参数
 					try {
 						String[] paramNames = ConstructorPropertiesChecker.evaluate(candidate, paramTypes.length);
 						if (paramNames == null) {
+							// 获取参数名称发现器
 							ParameterNameDiscoverer pnd = this.beanFactory.getParameterNameDiscoverer();
 							if (pnd != null) {
+								// 获取参数名称
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
+						// 根据名称和数据类型创建参数持有者
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
@@ -235,12 +220,14 @@ class ConstructorResolver {
 					if (paramTypes.length != explicitArgs.length) {
 						continue;
 					}
+					// 构造函数没有参数的情况
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
-
+				// 探测是否有不确定性的构造函数存在, 例如不同构造函数的参数为父子关系
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
 				// Choose this constructor if it represents the closest match.
+				// 如果它代表着当前最接近的匹配则选择作为构造函数
 				if (typeDiffWeight < minTypeDiffWeight) {
 					constructorToUse = candidate;
 					argsHolderToUse = argsHolder;
@@ -277,11 +264,13 @@ class ConstructorResolver {
 			}
 
 			if (explicitArgs == null && argsHolderToUse != null) {
+				// 将解析的构造函数加入缓存
 				argsHolderToUse.storeCache(mbd, constructorToUse);
 			}
 		}
 
 		Assert.state(argsToUse != null, "Unresolved constructor arguments");
+		// 将构建的实际加入beanWrapper中
 		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));
 		return bw;
 	}

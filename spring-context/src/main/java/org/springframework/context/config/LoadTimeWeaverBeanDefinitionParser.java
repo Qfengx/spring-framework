@@ -87,6 +87,7 @@ class LoadTimeWeaverBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 	}
 
 	protected boolean isAspectJWeavingEnabled(String value, ParserContext parserContext) {
+		// 判断是否启动
 		if ("on".equals(value)) {
 			return true;
 		}
@@ -95,6 +96,7 @@ class LoadTimeWeaverBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 		}
 		else {
 			// Determine default...
+			// 自动决定  META-INF/aop.xml文件是否存在决定
 			ClassLoader cl = parserContext.getReaderContext().getBeanClassLoader();
 			return (cl != null && cl.getResource(AspectJWeavingEnabler.ASPECTJ_AOP_XML_RESOURCE) != null);
 		}

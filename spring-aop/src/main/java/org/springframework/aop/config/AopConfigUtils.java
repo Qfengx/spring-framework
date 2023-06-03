@@ -16,9 +16,6 @@
 
 package org.springframework.aop.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
 import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator;
@@ -28,6 +25,9 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class for handling registration of AOP auto-proxy creators.
@@ -119,16 +119,20 @@ public abstract class AopConfigUtils {
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-
+		/**
+		 * 如果已经存在了自动代理创建器且自动代理创建器与现在的不一致那么需要根据优先级来判断到底需要使用哪个
+		 */
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					// 改变bean最重要的就是改变bean定义对应的className属性
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
+			// 如果已经存在自动代理创建器并且与将要创建的一致 那么无需在此创建
 			return null;
 		}
 
@@ -136,6 +140,7 @@ public abstract class AopConfigUtils {
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		// 注册内部的代理创建器bean定义
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

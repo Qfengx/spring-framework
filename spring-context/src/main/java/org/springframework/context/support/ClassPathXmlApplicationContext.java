@@ -197,6 +197,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 		Assert.notNull(clazz, "Class argument must not be null");
 		this.configResources = new Resource[paths.length];
 		for (int i = 0; i < paths.length; i++) {
+			// 解析给定的路径  也是通过ClassPathResource
 			this.configResources[i] = new ClassPathResource(paths[i], clazz);
 		}
 		refresh();

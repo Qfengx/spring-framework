@@ -7,6 +7,7 @@ apply plugin: "groovy"
 dependencies {
 //    引入spring相关
     compile(project(":spring-context"))
+    compile(project(":spring-web"))
 
 //    引入boot相关
     implementation("com.google.guava:guava:30.0-jre")
@@ -22,6 +23,10 @@ dependencies {
     optional("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
     optional("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
 
+	implementation 'cglib:cglib:3.3.0'
+
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+    compileOnly 'javax.servlet:servlet-api:2.5'
 
 
 

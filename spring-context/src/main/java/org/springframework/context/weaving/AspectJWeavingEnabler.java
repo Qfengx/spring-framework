@@ -16,12 +16,7 @@
 
 package org.springframework.context.weaving;
 
-import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.IllegalClassFormatException;
-import java.security.ProtectionDomain;
-
 import org.aspectj.weaver.loadtime.ClassPreProcessorAgentAdapter;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -30,6 +25,10 @@ import org.springframework.core.Ordered;
 import org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver;
 import org.springframework.instrument.classloading.LoadTimeWeaver;
 import org.springframework.lang.Nullable;
+
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
+import java.security.ProtectionDomain;
 
 /**
  * Post-processor that registers AspectJ's
@@ -87,6 +86,7 @@ public class AspectJWeavingEnabler
 			@Nullable LoadTimeWeaver weaverToUse, @Nullable ClassLoader beanClassLoader) {
 
 		if (weaverToUse == null) {
+			// 此时已经被初始化为DefaultContextLoadTimeWeaver
 			if (InstrumentationLoadTimeWeaver.isInstrumentationAvailable()) {
 				weaverToUse = new InstrumentationLoadTimeWeaver(beanClassLoader);
 			}
@@ -94,6 +94,7 @@ public class AspectJWeavingEnabler
 				throw new IllegalStateException("No LoadTimeWeaver available");
 			}
 		}
+		// 使用DefaultContextLoadTimeWeaver 类型的bean中的loadTimeWeaver属性注册转换器
 		weaverToUse.addTransformer(
 				new AspectJClassBypassingClassFileTransformer(new ClassPreProcessorAgentAdapter()));
 	}
@@ -119,6 +120,7 @@ public class AspectJWeavingEnabler
 			if (className.startsWith("org.aspectj") || className.startsWith("org/aspectj")) {
 				return classfileBuffer;
 			}
+			// 委托给AspectJ代理继续处理
 			return this.delegate.transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
 		}
 	}

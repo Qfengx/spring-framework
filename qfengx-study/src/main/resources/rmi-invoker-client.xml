@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:qfengx="http://www.qfengx.cn/schema/user"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+				http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context-2.5.xsd
+				http://www.qfengx.cn/schema/user http://www.qfengx.cn/schema/user.xsd">
+
+   <bean id="remoteService" class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+      <property name="serviceUrl" value="http://localhost:8099/httpinvokertest/remoting/hit" />
+      <property name="serviceInterface" value="cn.qfengx.study.rmi.httpinvoker.HttpInvokerTestI" />
+   </bean>
+</beans>

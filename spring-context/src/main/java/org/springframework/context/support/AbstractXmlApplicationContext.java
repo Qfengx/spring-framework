@@ -16,8 +16,6 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
@@ -25,6 +23,8 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Convenient base class for {@link org.springframework.context.ApplicationContext}
@@ -80,16 +80,19 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		// 为指定beanFactory 创建XmlBeanDefinitonReader
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
+		// 对beanDefinitonReader进行环境变量的设置
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		// 对BeanDefinitonReader进行设置 可以覆盖
 		initBeanDefinitionReader(beanDefinitionReader);
 		loadBeanDefinitions(beanDefinitionReader);
 	}
@@ -107,6 +110,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	}
 
 	/**
+	 * 配置文件读取操作
 	 * Load the bean definitions with the given XmlBeanDefinitionReader.
 	 * <p>The lifecycle of the bean factory is handled by the {@link #refreshBeanFactory}
 	 * method; hence this method is just supposed to load and/or register bean definitions.
